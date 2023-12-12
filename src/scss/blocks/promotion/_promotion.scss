@@ -16,7 +16,7 @@
     &__text {
         width: 50%;
     }
-    &__descr {
+    &__descr, [data-endday] {
         margin-top: 40px;
         font-size: 20px;
         line-height: 24px;

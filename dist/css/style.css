@@ -515,13 +515,13 @@ a {
 .promotion__text {
   width: 50%;
 }
-.promotion__descr {
+.promotion__descr, .promotion [data-endday] {
   margin-top: 40px;
   font-size: 20px;
   line-height: 24px;
   font-weight: 300;
 }
-.promotion__descr span {
+.promotion__descr span, .promotion [data-endday] span {
   font-weight: bold;
   font-size: 26px;
 }
@@ -590,12 +590,15 @@ a {
   height: 100%;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
 }
 .modal__dialog {
+  cursor: default;
   max-width: 500px;
   margin: 40px auto;
 }
 .modal__content {
+  cursor: default;
   position: relative;
   width: 100%;
   padding: 40px;
@@ -618,6 +621,7 @@ a {
   cursor: pointer;
 }
 .modal__title {
+  cursor: default;
   text-align: center;
   font-size: 22px;
   text-transform: uppercase;
