@@ -133,12 +133,33 @@ function openOnBottom() {
     }
 }
 
+class FoodItem {
+    constructor(imagePath, title, descr, price) {
+        this.imagePath = imagePath;
+        this.title = title;
+        this.descr = descr;
+        this.price = price;
+        // this.usdRate = fetch('https://bank.gov.ua/NBU_Exchange/exchange_site?valcode=usd&json', { mode: 'no-cors'}).then(JSON.parse(response));
+        // console.log(this.usdRate);
+    }
+
+    menuFiller(element) {
+        element.querySelector('img').src = this.imagePath;
+        element.querySelector('.menu__item-subtitle').innerText = this.title;
+        element.querySelector('.menu__item-descr').innerText = this.descr;
+        element.querySelector('.menu__item-total span').innerText = this.price;
+    }
+}
+
 const sliders = document.querySelectorAll('.tabcontent'),
       tabItems = document.querySelectorAll('.tabheader__item'),
       tabWrapper = document.querySelector('.tabheader__items'),
       modal = document.querySelector('.modal'),
       closeModalBtns = document.querySelectorAll('.modal__close'),
-      showModalBtns = document.querySelectorAll('[data-modal]');
+      showModalBtns = document.querySelectorAll('[data-modal]'),
+      foodMenuElements = document.querySelectorAll('.menu__item');
+      foodMenu = [new FoodItem('img/tabs/vegy.jpg', 'Меню "Фитнес"', 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',229), new FoodItem('img/tabs/elite.jpg', 'Меню “Премиум”', 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!', 550), new FoodItem('img/tabs/post.jpg', 'Меню "Постное"', 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.', '430')];
+
 let endTime = new Date('2023-12-31');
 
 closeModalBtns.forEach((btn) => {
@@ -165,6 +186,10 @@ if(target && target.matches('.tabheader__item')) {
         }
     });
 }
+});
+
+foodMenuElements.forEach((element, i)=>{
+    foodMenu[i].menuFiller(element);
 });
 
 window.addEventListener('scroll', openOnBottom);
