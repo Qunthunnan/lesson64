@@ -66,7 +66,7 @@ function timeUpdater(endTime) {
   }
 }
 function eventCloseModal(e) {
-  if (e.target && e.target.matches('.modal')) {
+  if (e.target && e.target.matches(modal.classList[0])) {
     closeModal(modal);
   }
 }
@@ -88,30 +88,38 @@ function showModal(modal) {
         clearTimeout(autoOpenTimId);
         clearInterval(showModalInvId);
       } else {
-        opacity += 0.1;
+        opacity += 0.03;
         modal.style.opacity = opacity;
       }
     }
-    showModalInvId = setInterval(addVisability, 50);
+    showModalInvId = setInterval(addVisability, 16);
   }
 }
-function closeModal(modal) {
+function closeModal(modal, action) {
   if (modal.style.display !== 'none' || getComputedStyle(modal).display !== 'none') {
-    function removeVisability() {
-      debugger;
+    function removeVisability(action) {
       opacity = +getComputedStyle(modal).opacity;
       if (opacity <= 0) {
         modal.style.display = 'none';
         modal.removeEventListener('click', eventCloseModal);
         document.removeEventListener('keydown', eventCloseKey);
         document.body.style.overflow = '';
+        if (action) {
+          action();
+        }
         clearInterval(closeModalInvId);
       } else {
-        opacity -= 0.1;
+        opacity -= 0.03;
         modal.style.opacity = opacity;
       }
     }
-    closeModalInvId = setInterval(removeVisability, 50);
+    if (action) {
+      closeModalInvId = setInterval(() => {
+        removeVisability(action);
+      }, 50);
+    } else {
+      closeModalInvId = setInterval(removeVisability, 16);
+    }
   }
 }
 function openOnBottom() {
@@ -139,16 +147,17 @@ class FoodItem {
 const sliders = document.querySelectorAll('.tabcontent'),
   tabItems = document.querySelectorAll('.tabheader__item'),
   tabWrapper = document.querySelector('.tabheader__items'),
-  modal = document.querySelector('.modal'),
+  modal = document.querySelector('.modal--form'),
+  modalDone = document.querySelector('.modal--done'),
   closeModalBtns = document.querySelectorAll('.modal__close'),
   showModalBtns = document.querySelectorAll('[data-modal]'),
-  foodMenuElements = document.querySelectorAll('.menu__item');
-foodMenu = [new FoodItem('img/tabs/vegy.jpg', 'Меню "Фитнес"', 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!', 229), new FoodItem('img/tabs/elite.jpg', 'Меню “Премиум”', 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!', 550), new FoodItem('img/tabs/post.jpg', 'Меню "Постное"', 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.', '430')];
+  foodMenuElements = document.querySelectorAll('.menu__item'),
+  clientForm = modal.querySelector('.modal--form form'),
+  foodMenu = [new FoodItem('img/tabs/vegy.jpg', 'Меню "Фитнес"', 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!', 229), new FoodItem('img/tabs/elite.jpg', 'Меню “Премиум”', 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!', 550), new FoodItem('img/tabs/post.jpg', 'Меню "Постное"', 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.', '430')];
 let endTime = new Date('2023-12-31');
 closeModalBtns.forEach(btn => {
   btn.addEventListener('click', e => {
-    debugger;
-    closeModal(modal);
+    closeModal(e.target.closest('.modal'));
   });
 });
 showModalBtns.forEach(btn => {
@@ -167,6 +176,25 @@ tabWrapper.addEventListener('click', e => {
       }
     });
   }
+});
+clientForm.addEventListener('submit', e => {
+  e.preventDefault();
+  userData = new FormData(clientForm);
+  let JsonBuffer = {};
+  userData.forEach((item, i) => {
+    JsonBuffer[i] = item;
+  });
+  fetch('test.php', {
+    method: 'POST',
+    body: JSON.stringify(JsonBuffer)
+  }).then(response => {
+    console.log(response);
+    closeModal(modal, () => {
+      showModal(modalDone);
+    });
+  }).finally(() => {
+    clientForm.reset();
+  });
 });
 foodMenuElements.forEach((element, i) => {
   foodMenu[i].menuFiller(element);
