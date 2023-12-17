@@ -116,7 +116,7 @@ function closeModal(modal, action) {
     if (action) {
       closeModalInvId = setInterval(() => {
         removeVisability(action);
-      }, 50);
+      }, 16);
     } else {
       closeModalInvId = setInterval(removeVisability, 16);
     }
@@ -127,34 +127,85 @@ function openOnBottom() {
     showModal(modal);
     window.removeEventListener('scroll', openOnBottom);
   }
-}
+} //Openning modal--form when user scrolls to bottom page
+
+const getData = async url => {
+  const result = await fetch(url);
+  if (!result.ok) {
+    throw new Error(`Could not get data from ${url}, request status: ${result.status}`);
+  }
+  return await result.json();
+};
+const postData = async (data, url) => {
+  const result = await fetch(url, {
+    headers: {
+      'Content-type': 'application/json'
+    },
+    method: 'POST',
+    body: data
+  });
+  return await result.json();
+};
 class FoodItem {
-  constructor(imagePath, title, descr, price) {
+  constructor(imagePath, imageAlt, title, descr, price, usdRate) {
     this.imagePath = imagePath;
+    this.imageAlt = imageAlt;
     this.title = title;
     this.descr = descr;
     this.price = price;
-    // this.usdRate = fetch('https://bank.gov.ua/NBU_Exchange/exchange_site?valcode=usd&json', { mode: 'no-cors'}).then(JSON.parse(response));
-    // console.log(this.usdRate);
+    if (usdRate && typeof usdRate === 'number') {
+      this.usdRate = usdRate;
+      this.price = Math.floor(this.usdRate * this.price);
+    }
   }
-  menuFiller(element) {
-    element.querySelector('img').src = this.imagePath;
-    element.querySelector('.menu__item-subtitle').innerText = this.title;
-    element.querySelector('.menu__item-descr').innerText = this.descr;
-    element.querySelector('.menu__item-total span').innerText = this.price;
+  menuFiller(wrapper) {
+    let menuItem = document.createElement('div');
+    menuItem.classList.add('menu__item');
+    menuItem.innerHTML = `
+            <img src="${this.imagePath}" alt="${this.imageAlt}">
+            <h3 class="menu__item-subtitle">${this.title}</h3>
+            <div class="menu__item-descr">${this.descr}</div>
+            <footer class="menu__item_footer">
+                <div class="menu__item-divider"></div>
+                <div class="menu__item-price">
+                    <div class="menu__item-cost">Цена:</div>
+                    <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
+                </div>
+            </footer>
+        `;
+    wrapper.append(menuItem);
   }
+}
+function makeFoodMenu() {
+  getData('http://localhost:3000/menu').then(result => {
+    result.forEach(({
+      img,
+      altimg,
+      title,
+      descr,
+      price
+    }) => {
+      new FoodItem(img, altimg, title, descr, price, usdRate).menuFiller(foodMenuWrapper);
+    });
+  });
 }
 const sliders = document.querySelectorAll('.tabcontent'),
   tabItems = document.querySelectorAll('.tabheader__item'),
   tabWrapper = document.querySelector('.tabheader__items'),
   modal = document.querySelector('.modal--form'),
   modalDone = document.querySelector('.modal--done'),
+  modalError = document.querySelector('.modal--error'),
   closeModalBtns = document.querySelectorAll('.modal__close'),
   showModalBtns = document.querySelectorAll('[data-modal]'),
-  foodMenuElements = document.querySelectorAll('.menu__item'),
-  clientForm = modal.querySelector('.modal--form form'),
-  foodMenu = [new FoodItem('img/tabs/vegy.jpg', 'Меню "Фитнес"', 'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!', 229), new FoodItem('img/tabs/elite.jpg', 'Меню “Премиум”', 'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!', 550), new FoodItem('img/tabs/post.jpg', 'Меню "Постное"', 'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.', '430')];
-let endTime = new Date('2023-12-31');
+  foodMenuWrapper = document.querySelector('.menu__wrapper'),
+  clientForm = modal.querySelector('.modal--form form');
+let endTime = new Date('2023-12-31'),
+  showModalInvId,
+  usdRate,
+  closeModalInvId;
+getData('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=usd&json').then(result => {
+  usdRate = result[0]['rate'];
+}).finally(makeFoodMenu);
 closeModalBtns.forEach(btn => {
   btn.addEventListener('click', e => {
     closeModal(e.target.closest('.modal'));
@@ -179,25 +230,20 @@ tabWrapper.addEventListener('click', e => {
 });
 clientForm.addEventListener('submit', e => {
   e.preventDefault();
-  userData = new FormData(clientForm);
-  let JsonBuffer = {};
-  userData.forEach((item, i) => {
-    JsonBuffer[i] = item;
-  });
-  fetch('test.php', {
-    method: 'POST',
-    body: JSON.stringify(JsonBuffer)
-  }).then(response => {
+  const userData = new FormData(clientForm);
+  postData(JSON.stringify(Object.fromEntries(userData)), 'http://localhost:3000/requests').then(response => {
     console.log(response);
     closeModal(modal, () => {
       showModal(modalDone);
     });
+  }).catch(() => {
+    closeModal(modal, () => {
+      showModal(modalError);
+    });
+    console.error(response);
   }).finally(() => {
     clientForm.reset();
   });
-});
-foodMenuElements.forEach((element, i) => {
-  foodMenu[i].menuFiller(element);
 });
 window.addEventListener('scroll', openOnBottom);
 autoOpenTimId = setTimeout(() => {
