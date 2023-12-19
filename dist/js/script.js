@@ -129,23 +129,28 @@ function openOnBottom() {
   }
 } //Openning modal--form when user scrolls to bottom page
 
-const getData = async url => {
-  const result = await fetch(url);
-  if (!result.ok) {
-    throw new Error(`Could not get data from ${url}, request status: ${result.status}`);
-  }
-  return await result.json();
-};
-const postData = async (data, url) => {
-  const result = await fetch(url, {
-    headers: {
-      'Content-type': 'application/json'
-    },
-    method: 'POST',
-    body: data
-  });
-  return await result.json();
-};
+// const getData = async (url) => {
+//     const result = await fetch(url);
+
+//     if(!result.ok) {
+//         throw new Error(`Could not get data from ${url}, request status: ${result.status}`);
+//     }
+
+//     return await result.json();
+// }
+
+// const postData = async (data, url) => {
+//     const result = await fetch(url, {
+//         headers: {
+//             'Content-type': 'application/json'
+//         },
+//         method: 'POST',
+//         body: data,
+//     });
+
+//     return await result.json();
+// }
+
 class FoodItem {
   constructor(imagePath, imageAlt, title, descr, price, usdRate) {
     this.imagePath = imagePath;
@@ -176,9 +181,59 @@ class FoodItem {
     wrapper.append(menuItem);
   }
 }
+class Slider {
+  constructor(slides, nextBtn, prevBtn, curentCounter, totalCounter) {
+    debugger;
+    this.slides = [];
+    slides.forEach(item => {
+      this.slides.push(item);
+    });
+    this.activeSlide = 0;
+    this.nextBtn = nextBtn;
+    this.prevBtn = prevBtn;
+    this.curentCounter = curentCounter;
+    this.totalCounter = totalCounter;
+    this.size = slides.length;
+    this.totalCounter.innerText = this.size;
+    nextBtn.addEventListener('click', () => {
+      this.nextSlide();
+    });
+    prevBtn.addEventListener('click', () => {
+      this.prevSlide();
+    });
+    this.updateSlider();
+  }
+  updateSlider() {
+    this.slides.forEach(element => {
+      element.classList.remove('offer__slide--start');
+      element.classList.remove('offer__slide--active');
+    });
+    this.slides[this.activeSlide].classList.add('offer__slide--active');
+    this.curentCounter.innerText = this.activeSlide + 1;
+  }
+  nextSlide() {
+    debugger;
+    if (this.activeSlide >= this.slides.length - 1) {
+      this.activeSlide = 0;
+    } else {
+      this.activeSlide++;
+    }
+    this.updateSlider();
+  }
+  prevSlide() {
+    debugger;
+    if (this.activeSlide === 0) {
+      this.activeSlide = this.slides.length - 1;
+    } else {
+      this.activeSlide--;
+    }
+    this.updateSlider();
+  }
+}
 function makeFoodMenu() {
-  getData('http://localhost:3000/menu').then(result => {
-    result.forEach(({
+  // getData('http://localhost:3000/menu')
+  axios.get('http://localhost:3000/menu').then(result => {
+    result.data.forEach(({
       img,
       altimg,
       title,
@@ -198,14 +253,24 @@ const sliders = document.querySelectorAll('.tabcontent'),
   closeModalBtns = document.querySelectorAll('.modal__close'),
   showModalBtns = document.querySelectorAll('[data-modal]'),
   foodMenuWrapper = document.querySelector('.menu__wrapper'),
-  clientForm = modal.querySelector('.modal--form form');
+  clientForm = modal.querySelector('.modal--form form'),
+  offerSlides = document.querySelectorAll('.offer__slide'),
+  nextSlideBtn = document.querySelector('.offer__slider-next'),
+  prevSlideBtn = document.querySelector('.offer__slider-prev'),
+  curSliderCounter = document.querySelector('#current'),
+  totalSliderCounter = document.querySelector('#total'),
+  slider = new Slider(offerSlides, nextSlideBtn, prevSlideBtn, curSliderCounter, totalSliderCounter);
 let endTime = new Date('2023-12-31'),
   showModalInvId,
   usdRate,
   closeModalInvId;
-getData('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=usd&json').then(result => {
-  usdRate = result[0]['rate'];
+
+// getData('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=usd&json')
+axios.get('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=usd&json').then(result => {
+  usdRate = result.data[0]['rate'];
 }).finally(makeFoodMenu);
+const test = [1, 2, 3, 4, 5];
+console.log();
 closeModalBtns.forEach(btn => {
   btn.addEventListener('click', e => {
     closeModal(e.target.closest('.modal'));
@@ -231,7 +296,9 @@ tabWrapper.addEventListener('click', e => {
 clientForm.addEventListener('submit', e => {
   e.preventDefault();
   const userData = new FormData(clientForm);
-  postData(JSON.stringify(Object.fromEntries(userData)), 'http://localhost:3000/requests').then(response => {
+
+  // postData(JSON.stringify(Object.fromEntries(userData)), 'http://localhost:3000/requests')
+  axios.post('http://localhost:3000/requests', Object.fromEntries(userData)).then(response => {
     console.log(response);
     closeModal(modal, () => {
       showModal(modalDone);
