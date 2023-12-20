@@ -235,7 +235,6 @@ class FoodItem {
 
 class Slider {
   constructor(sliderTrack, nextBtn, prevBtn, curentCounter, totalCounter) {
-    debugger;
     this.sliderTrack = sliderTrack;
     this.activeSlide = 1;
     this.trackPositionX = 0;
@@ -261,14 +260,13 @@ class Slider {
     });
     this.pagination.addEventListener('click', e => {
       if (e.target && e.target.matches('.offer__slider_pagination li')) {
-        let dotIndex = +e.target.attributes[0].value;
+        let dotIndex = +e.target.getAttribute('data-slide');
         if (this.activeSlide !== dotIndex + 1) {
           this.trackPositionX = this.sliderWidth * -dotIndex - this.sliderWidth;
           this.sliderTrack.style.transform = `matrix(1, 0, 0, 1, ${this.trackPositionX}, 0)`;
           this.activeSlide = dotIndex + 1;
           this.curentCounter.textContent = this.activeSlide;
-          this.pagination.querySelector('.offer__dot_active').classList.remove('offer__dot_active');
-          this.paginationItems[dotIndex].classList.add('offer__dot_active');
+          this.updatePagination();
         }
       }
     });
@@ -311,8 +309,11 @@ class Slider {
   //     }
   // }
 
+  updatePagination() {
+    this.pagination.querySelector('.offer__dot_active').classList.remove('offer__dot_active');
+    this.paginationItems[this.activeSlide - 1].classList.add('offer__dot_active');
+  }
   nextSlide() {
-    debugger;
     if (this.activeSlide === this.size) {
       this.activeSlide = 0;
       this.fakeTrackMove(true);
@@ -321,10 +322,10 @@ class Slider {
       this.curentCounter.textContent = this.activeSlide;
       this.trackPositionX -= this.sliderWidth;
       this.sliderTrack.style.transform = `matrix(1, 0, 0, 1, ${this.trackPositionX}, 0)`;
+      this.updatePagination();
     }
   }
   prevSlide() {
-    debugger;
     if (this.activeSlide === 1) {
       this.activeSlide = this.size + 1;
       this.fakeTrackMove(false);
@@ -333,6 +334,7 @@ class Slider {
       this.curentCounter.textContent = this.activeSlide;
       this.trackPositionX += this.sliderWidth;
       this.sliderTrack.style.transform = `matrix(1, 0, 0, 1, ${this.trackPositionX}, 0)`;
+      this.updatePagination();
     }
   }
 
