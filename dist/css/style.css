@@ -429,6 +429,10 @@ a {
 .calculating__choose_big .calculating__choose-item {
   width: 200px;
 }
+.calculating__input_error {
+  border: 1px solid #ff0000;
+  box-shadow: 0px 4px 15px rgba(255, 0, 0, 0.27);
+}
 .calculating__divider {
   width: 490px;
   height: 1px;
