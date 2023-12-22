@@ -1,4 +1,4 @@
-export default function timers({days, hours, minutes, seconds}) {
+export default function timers({days, hours, minutes, seconds, endDate}) {
     //Timer
     function zeroTime(num) {
         if(num < 10) {
@@ -54,6 +54,6 @@ export default function timers({days, hours, minutes, seconds}) {
         }
     }
 
-    let endTime = new Date('2024-01-01 00:00');
+    let endTime = new Date(endDate);
     timeUpdater(endTime);
 }
